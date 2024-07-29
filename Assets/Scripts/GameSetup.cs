@@ -62,7 +62,7 @@ public class GameSetup : MonoBehaviour
                 //Get the point that is clicked
                 Vector3 hitPoint = ray.GetPoint(enter);
 
-                cueBallObj.GetComponent<Rigidbody>().AddForce(30f *  Vector3.Scale(new Vector3(1,0,1),(hitPoint - cueBallObj.transform.position)));
+                cueBallObj.GetComponent<Rigidbody>().AddForce(300f *  Vector3.Scale(new Vector3(1,0,1),(hitPoint - cueBallObj.transform.position)));
             }
         }
     }
