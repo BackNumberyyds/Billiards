@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GameSetup : MonoBehaviour
 {
@@ -28,8 +29,11 @@ public class GameSetup : MonoBehaviour
     private float ballDiameter;
     private Plane m_Plane;
     private GameObject cueBallObj;
+    private CueStick cueStick;
+    private Vector3 prevMPos;
 
     [SerializeField] private GameObject ballPrefab;
+    [SerializeField] private Transform cueStickPrefab;
     [SerializeField] private Transform cueBallPosition;
     [SerializeField] private Transform headBallPosition;
     [SerializeField] private Mesh[] ballMeshs;
@@ -39,6 +43,7 @@ public class GameSetup : MonoBehaviour
         ballRadius = ballPrefab.GetComponent<SphereCollider>().radius;
         ballDiameter = ballRadius * 2f;
         PlaceAllBalls();
+        PlaceCueStick();
         // Debug.Break();
         
         //Create a new plane with normal (0,1,0) at the position away from the camera you define in the Inspector. This is the plane that you can click so make sure it is reachable.
@@ -46,37 +51,82 @@ public class GameSetup : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        //Detect when there is a mouse click
+        RotateCueStick();
+        // //Detect when there is a mouse click
+        // if (Input.GetMouseButtonDown(0))
+        // {
+        //     //Create a ray from the Mouse click position
+        //     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        //
+        //     //Initialise the enter variable
+        //     float enter = 0.0f;
+        //
+        //     if (m_Plane.Raycast(ray, out enter))
+        //     {
+        //         //Get the point that is clicked
+        //         Vector3 hitPoint = ray.GetPoint(enter);
+        //
+        //         cueBallObj.GetComponent<Rigidbody>().AddForce(300f *  Vector3.Scale(new Vector3(1,0,1),(hitPoint - cueBallObj.transform.position)));
+        //     }
+        // }
+    }
+
+    private void RotateCueStick()
+    {
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+        
         if (Input.GetMouseButtonDown(0))
         {
-            //Create a ray from the Mouse click position
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            prevMPos = Input.mousePosition;
+        }
 
-            //Initialise the enter variable
-            float enter = 0.0f;
-
-            if (m_Plane.Raycast(ray, out enter))
+        if (Input.GetMouseButton(0))
+        {
+            Vector3 diff = Input.mousePosition - prevMPos;
+            if (diff == Vector3.zero) return;
+            
+            prevMPos = Input.mousePosition;
+            float angle = 1;
+            
+            if (Mathf.Abs(diff.y) > Mathf.Abs(diff.x))
             {
-                //Get the point that is clicked
-                Vector3 hitPoint = ray.GetPoint(enter);
-
-                cueBallObj.GetComponent<Rigidbody>().AddForce(300f *  Vector3.Scale(new Vector3(1,0,1),(hitPoint - cueBallObj.transform.position)));
+                if (diff.y > 0)
+                {
+                    angle *= -1;
+                }
             }
+            else
+            {
+                if (diff.x < 0)
+                {
+                    angle *= -1;
+                }
+            }
+            
+            cueStick.Rotate(angle);
         }
     }
 
-    void PlaceAllBalls()
+    private void PlaceAllBalls()
     {
         PlaceCueBall();
         PlaceRandomBalls();
     }
 
-    void PlaceCueBall()
+    private void PlaceCueBall()
     {
         cueBallObj = Instantiate(ballPrefab, cueBallPosition.position, ballPrefab.transform.rotation);
         cueBallObj.GetComponent<Ball>().MakeCueBall(ballMeshs[0]);
+    }
+
+    private void PlaceCueStick()
+    {
+        Vector3 cueBallPos = cueBallObj.transform.position;
+        var cueStickObj = Instantiate(cueStickPrefab, new Vector3(cueBallPos.x, ballRadius, cueBallPos.z), ballPrefab.transform.rotation);
+        cueStick = cueStickObj.GetChild(0).GetComponent<CueStick>();
     }
 
     void PlaceBlackBall(Vector3 position)
