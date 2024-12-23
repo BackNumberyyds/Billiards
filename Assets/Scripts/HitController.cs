@@ -5,8 +5,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class HitController : MonoBehaviour, IPointerUpHandler
+public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
 {
+    private CueStick _cueStick;
     private Slider _slider;
 
     private void Awake()
@@ -14,8 +15,21 @@ public class HitController : MonoBehaviour, IPointerUpHandler
         _slider = GetComponent<Slider>();
     }
 
+    public void SetCueStick(CueStick cueStick)
+    {
+        _cueStick = cueStick;
+    }
+
     public void OnPointerUp(PointerEventData eventData)
     {
+        var hitPower = _slider.value;
         _slider.value = 0;
+        _cueStick.Pull(0);
+        _cueStick.Hit(hitPower);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        _cueStick.Pull(_slider.value);
     }
 }
