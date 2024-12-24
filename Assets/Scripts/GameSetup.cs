@@ -61,13 +61,13 @@ public class GameSetup : MonoBehaviour
     // game logic
     private bool[] _isBallMoving = new bool[16];
 
-    // private bool _hasMovingBall
-    // {
-    //     get
-    //     {
-    //         for ()
-    //     }
-    // }
+    private bool _hasMovingBall
+    {
+        get
+        {
+            for ()
+        }
+    }
     
     // Start is called before the first frame update
     private void Awake()
@@ -120,7 +120,7 @@ public class GameSetup : MonoBehaviour
     private void HandleBallStopped(Ball ball)
     {
         _isBallMoving[ball.BallId] = true;
-        // if (_hasMovingBall == false) {}
+        if (_hasMovingBall == false) {}
     }
 
     private void RotateCueStick()
