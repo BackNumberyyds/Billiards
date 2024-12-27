@@ -33,7 +33,7 @@ public class Ball : MonoBehaviour
     public static UnityEngine.Events.UnityAction<Ball> OnBallStopped;
     
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         _rb = GetComponent<Rigidbody>();
         // GetComponent<Rigidbody>().velocity += Vector3.forward * 2;
@@ -42,7 +42,7 @@ public class Ball : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (_rb.velocity.magnitude < 0.01f)
         {

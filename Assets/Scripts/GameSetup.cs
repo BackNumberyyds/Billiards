@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -26,16 +27,14 @@ public class GameSetup : MonoBehaviour
     };
     // private int solidBallsRemaining = 7;
     // private int stripedBallsRemaining = 7;
-    private float _ballRadius;
-    private Plane _mPlane;
-    private bool _rotateCueStick;
-    private Vector3 _prevMPos;
-    private EventSystem _eventSystem;
     
     // game object props
     private Ball _cueBall;
     private CueStick _cueStick;
     private Ball[] _balls = new Ball[16];
+    private Camera _camera;
+    private Plane _mPlane;
+    private EventSystem _eventSystem;
     
     // UI props
     private HitController _hitController;
@@ -60,6 +59,13 @@ public class GameSetup : MonoBehaviour
     
     // game logic
     private bool[] _isBallMoving = new bool[16];
+    private float _ballRadius;
+    
+    private Vector3 _cueBallPos;
+    private bool _rotateCueStick;
+    private Vector3 _prevMPos;
+
+    private bool _isMovingCueBall;
 
     // private bool _hasMovingBall
     // {
@@ -77,6 +83,7 @@ public class GameSetup : MonoBehaviour
 
     private void Start()
     {
+        _camera = Camera.main;
         _ballRadius = ballPrefab.GetComponent<SphereCollider>().radius;
         PlaceAllBalls();
         // attach callback function to OnBallStopped event
@@ -91,13 +98,12 @@ public class GameSetup : MonoBehaviour
         
         // Create a new plane with normal (0,1,0) at the position away from the camera you define in the Inspector
         // This is the plane that you can click so make sure it is reachable.
-        _mPlane = new Plane(Vector3.up, Vector3.zero);
+        _mPlane = new Plane(Vector3.up, new Vector3(0, _ballRadius, 0));
     }
 
     // Update is called once per frame
     private void Update()
     {
-        RotateCueStick();
         // //Detect when there is a mouse click
         // if (Input.GetMouseButtonDown(0))
         // {
@@ -117,6 +123,40 @@ public class GameSetup : MonoBehaviour
         // }
     }
 
+    private void FixedUpdate()
+    {
+        MoveCueBall();
+        if (!_isMovingCueBall) RotateCueStick();
+    }
+
+    private void MoveCueBall()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+            {
+                _isMovingCueBall = hitInfo.collider.GetComponent<Ball>();
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            _isMovingCueBall = false;
+        }
+
+        if (!_isMovingCueBall) return;
+
+        if (Input.GetMouseButton(0))
+        {
+            var ray = _camera.ScreenPointToRay(Input.mousePosition);
+            if (_mPlane.Raycast(ray, out var distance))
+            {
+                var intersectionPoint = ray.GetPoint(distance);
+                _cueBall.transform.position = intersectionPoint;
+            }
+        }
+    }
+
     private void HandleBallStopped(Ball ball)
     {
         _isBallMoving[ball.BallId] = true;
@@ -125,12 +165,13 @@ public class GameSetup : MonoBehaviour
 
     private void RotateCueStick()
     {
+        if (_camera) _cueBallPos = _camera.WorldToScreenPoint(_cueBall.transform.position);
         if (Input.GetMouseButtonDown(0))
         {
             if (_eventSystem.IsPointerOverGameObject()) return;
         
             _rotateCueStick = true;
-            _prevMPos = Input.mousePosition;
+            _prevMPos = Input.mousePosition - _cueBallPos;
         }
 
         if (!_rotateCueStick) return;
@@ -139,32 +180,15 @@ public class GameSetup : MonoBehaviour
         {
             _rotateCueStick = false;
         }
+
+        if (!Input.GetMouseButton(0)) return;
         
-        if (Input.GetMouseButton(0))
-        {
-            Vector3 diff = Input.mousePosition - _prevMPos;
-            if (diff == Vector3.zero) return;
+        var curr = Input.mousePosition - _cueBallPos;
+        var angle = -Vector2.SignedAngle(_prevMPos, curr);
+        
+        _prevMPos = curr;
             
-            _prevMPos = Input.mousePosition;
-            float angle = 1;
-            
-            if (Mathf.Abs(diff.y) > Mathf.Abs(diff.x))
-            {
-                if (diff.y > 0)
-                {
-                    angle *= -1;
-                }
-            }
-            else
-            {
-                if (diff.x < 0)
-                {
-                    angle *= -1;
-                }
-            }
-            
-            _cueStick.Rotate(angle);
-        }
+        _cueStick.Rotate(angle);
     }
 
     private void PlaceAllBalls()
@@ -187,12 +211,6 @@ public class GameSetup : MonoBehaviour
         var cueStickObj = Instantiate(cueStickPrefab, new Vector3(cueBallPos.x, _ballRadius, cueBallPos.z), ballPrefab.transform.rotation);
         _cueStick = cueStickObj.GetChild(0).GetComponent<CueStick>();
     }
-    
-    // void PlaceBlackBall(Vector3 position)
-    // {
-    //     GameObject ball = Instantiate(ballPrefab, position, ballPrefab.transform.rotation);
-    //     ball.GetComponent<Ball>().MakeBlackBall(ballMeshs[8]);
-    // }
     
     private void PlaceRandomBalls()
     {

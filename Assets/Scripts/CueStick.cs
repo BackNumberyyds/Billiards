@@ -1,19 +1,32 @@
+using System;
 using UnityEngine;
 
 public class CueStick : MonoBehaviour
 {
     [SerializeField] private float maxPullDistance;
     [SerializeField] private float powerScale = 10f;
+    [SerializeField] private LineRenderer aimLine;
     private Ball _cueBall;
-    private Transform tParent;
+    private Transform _tParent;
     private Vector3 _originalPos;
 
     private void Awake()
     {
-        tParent = transform.parent;
+        _tParent = transform.parent;
         _originalPos = transform.localPosition;
     }
 
+    private void Start()
+    {
+        DisplayAimLine();
+    }
+
+    private void DisplayAimLine()
+    {
+        aimLine.SetPosition(0, _tParent.position);
+        aimLine.SetPosition(1, _tParent.position + _tParent.right);
+    }
+    
     public void SetCueBall(Ball b)
     {
         _cueBall = b;
@@ -21,8 +34,9 @@ public class CueStick : MonoBehaviour
 
     public void Rotate(float angle)
     {
-        Vector3 rotation = Vector3.up * angle;
-        tParent.Rotate(rotation, Space.World);
+        var rotation = Vector3.up * angle;
+        _tParent.Rotate(rotation, Space.World);
+        DisplayAimLine();
     }
 
     public void Pull(float power)
@@ -33,8 +47,8 @@ public class CueStick : MonoBehaviour
 
     public void Hit(float power)
     {
-        float angle = transform.eulerAngles.y * Mathf.PI / 180;
-        Vector3 direction = new Vector3(-Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+        var angle = transform.eulerAngles.y * Mathf.PI / 180;
+        var direction = new Vector3(Mathf.Cos(angle), 0f, -Mathf.Sin(angle));
         _cueBall.GetComponent<Rigidbody>().AddForce(powerScale * power * direction);
     }
 }
