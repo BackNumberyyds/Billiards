@@ -27,7 +27,7 @@ public class GameSetup : MonoBehaviour
     };
     // private int solidBallsRemaining = 7;
     // private int stripedBallsRemaining = 7;
-    
+
     // game object props
     private Ball _cueBall;
     private CueStick _cueStick;
@@ -35,32 +35,32 @@ public class GameSetup : MonoBehaviour
     private Camera _camera;
     private Plane _mPlane;
     private EventSystem _eventSystem;
-    
+
     // UI props
     private HitController _hitController;
-    
+
     // game object prefabs
     [Header("Game Object Prefabs")]
     [SerializeField] private GameObject ballPrefab;
     [SerializeField] private Transform cueStickPrefab;
-    
+
     // UI prefabs
     [Header("UI Prefabs")]
     [SerializeField] private HitController hitControllerPrefab;
-    
+
     // spawning position
     [Header("Spawning Position")]
     [SerializeField] private Transform cueBallPosition;
     [SerializeField] private Transform headBallPosition;
-    
+
     // ball meshes
     [Header("Ball Meshes")]
     [SerializeField] private Mesh[] ballMeshs;
-    
+
     // game logic
     private bool[] _isBallMoving = new bool[16];
     private float _ballRadius;
-    
+
     private Vector3 _cueBallPos;
     private bool _rotateCueStick;
     private Vector3 _prevMPos;
@@ -74,7 +74,7 @@ public class GameSetup : MonoBehaviour
     //         for ()
     //     }
     // }
-    
+
     // Start is called before the first frame update
     private void Awake()
     {
@@ -88,14 +88,14 @@ public class GameSetup : MonoBehaviour
         PlaceAllBalls();
         // attach callback function to OnBallStopped event
         Ball.OnBallStopped += HandleBallStopped;
-        
+
         PlaceCueStick();
         _cueStick.SetCueBall(_cueBall);
         CreateHitController();
         _hitController.SetCueStick(_cueStick);
         // PlaceRandomBalls();
         // Debug.Break();
-        
+
         // Create a new plane with normal (0,1,0) at the position away from the camera you define in the Inspector
         // This is the plane that you can click so make sure it is reachable.
         _mPlane = new Plane(Vector3.up, new Vector3(0, _ballRadius, 0));
@@ -129,26 +129,45 @@ public class GameSetup : MonoBehaviour
         if (!_isMovingCueBall) RotateCueStick();
     }
 
+    private void ResetCueStickPos()
+    {
+        _cueStick.transform.parent.position = _cueBall.transform.position;
+    }
+
+    private void HideCueStick()
+    {
+        _cueStick.GetComponent<MeshRenderer>().enabled = false;
+    }
+
+    private void ShowCueStick()
+    {
+        _cueStick.GetComponent<MeshRenderer>().enabled = true;
+    }
+
     private void MoveCueBall()
     {
-        if (Input.GetMouseButtonDown(0))
+        var ray = _camera.ScreenPointToRay(Input.mousePosition);
+        if (Input.GetMouseButtonDown(0) && Physics.Raycast(ray, out RaycastHit hitInfo))
         {
-            if (Physics.Raycast(_camera.ScreenPointToRay(Input.mousePosition), out RaycastHit hitInfo))
+            _isMovingCueBall = hitInfo.collider.GetComponent<Ball>();
+
+            if (_isMovingCueBall)
             {
-                _isMovingCueBall = hitInfo.collider.GetComponent<Ball>();
+                HideCueStick();
             }
         }
 
         if (Input.GetMouseButtonUp(0))
         {
             _isMovingCueBall = false;
+            ResetCueStickPos();
+            ShowCueStick();
         }
 
         if (!_isMovingCueBall) return;
 
         if (Input.GetMouseButton(0))
         {
-            var ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (_mPlane.Raycast(ray, out var distance))
             {
                 var intersectionPoint = ray.GetPoint(distance);
@@ -169,7 +188,7 @@ public class GameSetup : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             if (_eventSystem.IsPointerOverGameObject()) return;
-        
+
             _rotateCueStick = true;
             _prevMPos = Input.mousePosition - _cueBallPos;
         }
@@ -182,12 +201,12 @@ public class GameSetup : MonoBehaviour
         }
 
         if (!Input.GetMouseButton(0)) return;
-        
+
         var curr = Input.mousePosition - _cueBallPos;
         var angle = -Vector2.SignedAngle(_prevMPos, curr);
-        
+
         _prevMPos = curr;
-            
+
         _cueStick.Rotate(angle);
     }
 
@@ -196,7 +215,7 @@ public class GameSetup : MonoBehaviour
         PlaceCueBall();
         PlaceRandomBalls();
     }
-    
+
     private void PlaceCueBall()
     {
         var cueBallObj = Instantiate(ballPrefab, cueBallPosition.position, ballPrefab.transform.rotation);
@@ -204,23 +223,23 @@ public class GameSetup : MonoBehaviour
         _cueBall.MakeCueBall(ballMeshs[0]);
         _balls[_cueBall.BallId] = _cueBall;
     }
-    
+
     private void PlaceCueStick()
     {
         Vector3 cueBallPos = _cueBall.transform.position;
         var cueStickObj = Instantiate(cueStickPrefab, new Vector3(cueBallPos.x, _ballRadius, cueBallPos.z), ballPrefab.transform.rotation);
         _cueStick = cueStickObj.GetChild(0).GetComponent<CueStick>();
     }
-    
+
     private void PlaceRandomBalls()
     {
         var solidOrder = new List<int> { 1, 2, 3, 4, 5, 6, 7 };
         var stripedOrder = new List<int> { 9, 10, 11, 12, 13, 14, 15 };
         int solidIdx = 0, stripedIdx = 0;
-        
+
         Shuffle(solidOrder);
         Shuffle(stripedOrder);
-        
+
         var head = headBallPosition.position;
         for (int i = 0, k = 0; i < 5; i++)
         {
@@ -250,11 +269,11 @@ public class GameSetup : MonoBehaviour
             }
         }
     }
-    
+
     private static void Shuffle(List<int> list)
     {
         var n = list.Count;
-    
+
         for (var i = 0; i < n; i++)
         {
             var randomIndex = UnityEngine.Random.Range(i, n);
