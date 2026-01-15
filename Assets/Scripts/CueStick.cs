@@ -5,28 +5,36 @@ public class CueStick : MonoBehaviour
 {
     [SerializeField] private float maxPullDistance;
     [SerializeField] private float powerScale = 10f;
-    [SerializeField] private LineRenderer aimLine;
+    private LineRenderer _aimLine;
     private Ball _cueBall;
-    private Transform _tParent;
+    private MeshRenderer _modelRenderer;
+    private Transform _modelTransform;
     private Vector3 _originalPos;
 
     private void Awake()
     {
-        _tParent = transform.parent;
-        _originalPos = transform.localPosition;
+        _aimLine = GetComponentInChildren<LineRenderer>();
+        _modelTransform = transform.Find("Cuestick");
+        if (_modelTransform == null)
+            throw new InvalidOperationException(
+                "CueStick model can't be null!");
+        _modelRenderer = _modelTransform.GetComponent<MeshRenderer>();
+
+        _originalPos = _modelTransform.localPosition;
     }
 
     private void Start()
     {
-        DisplayAimLine();
+        if (_aimLine != null)
+            UpdateAimLine();
     }
 
-    private void DisplayAimLine()
+    private void UpdateAimLine()
     {
-        aimLine.SetPosition(0, _tParent.position);
-        aimLine.SetPosition(1, _tParent.position + _tParent.right);
+        _aimLine.SetPosition(0, transform.position);
+        _aimLine.SetPosition(1, transform.position + transform.right);
     }
-    
+
     public void SetCueBall(Ball b)
     {
         _cueBall = b;
@@ -35,20 +43,33 @@ public class CueStick : MonoBehaviour
     public void Rotate(float angle)
     {
         var rotation = Vector3.up * angle;
-        _tParent.Rotate(rotation, Space.World);
-        DisplayAimLine();
+        transform.Rotate(rotation, Space.World);
+
+        if (_aimLine != null)
+            UpdateAimLine();
     }
 
     public void Pull(float power)
     {
         var pos = _originalPos - Vector3.right * power * maxPullDistance;
-        transform.localPosition = pos;
+        _modelTransform.localPosition = pos;
     }
 
     public void Hit(float power)
     {
         var angle = transform.eulerAngles.y * Mathf.PI / 180;
         var direction = new Vector3(Mathf.Cos(angle), 0f, -Mathf.Sin(angle));
-        _cueBall.GetComponent<Rigidbody>().AddForce(powerScale * power * direction);
+        _cueBall.GetComponent<Rigidbody>()
+            .AddForce(powerScale * power * direction);
+    }
+
+    public void Hide()
+    {
+        _modelRenderer.enabled = false;
+    }
+
+    public void Show()
+    {
+        _modelRenderer.enabled = true;
     }
 }

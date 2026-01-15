@@ -53,7 +53,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: f0f59533cc7e84a4eb8b30cff40ed250, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -97,8 +97,8 @@ LineRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 0, g: 0.51622534, b: 1, a: 1}
+      key1: {r: 1, g: 0, b: 0.20189762, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -122,7 +122,7 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
-      m_ColorSpace: -1
+      m_ColorSpace: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
@@ -147,7 +147,6 @@ GameObject:
   - component: {fileID: 8009172434168847203}
   - component: {fileID: 280928672597385735}
   - component: {fileID: 8414876554428616540}
-  - component: {fileID: 6052566543561456000}
   m_Layer: 0
   m_Name: Cuestick
   m_TagString: Untagged
@@ -220,21 +219,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6052566543561456000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2174352167773487690}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 620536b747c1242428a1293cdf3987c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxPullDistance: 0.4
-  powerScale: 500
-  aimLine: {fileID: 8294673820121078358}
 --- !u!1 &8424764006559066014
 GameObject:
   m_ObjectHideFlags: 0
@@ -244,8 +228,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5592420827008402272}
+  - component: {fileID: 685940981264115903}
   m_Layer: 0
-  m_Name: Cuestick Anchor
+  m_Name: Cuestick
   m_TagString: Untagged
   m_Icon: {fileID: 7422848464349959988, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -268,3 +253,19 @@ Transform:
   - {fileID: 2119112301596519236}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &685940981264115903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8424764006559066014}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 620536b747c1242428a1293cdf3987c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxPullDistance: 0.4
+  powerScale: 500
+  cueStick: {fileID: 0}
+  aimLine: {fileID: 0}

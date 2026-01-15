@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ballPrefab: {fileID: 775348828116032647, guid: 63da12d1c542148779c303ecb93e8536, type: 3}
-  cueStickPrefab: {fileID: 5592420827008402272, guid: fa365612927b6d642a62a68f53439e97, type: 3}
+  cueStickPrefab: {fileID: 8971631393669562272, guid: 499e4da757b204e31a1a962893bb92fd, type: 3}
   hitControllerPrefab: {fileID: 4451940762633851314, guid: cb9b00d9bb2c992479784c5c350819cf, type: 3}
   cueBallPosition: {fileID: 763642209}
   headBallPosition: {fileID: 2035504622}
