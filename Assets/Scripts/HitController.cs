@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
 {
-    public UnityEvent onHit;
+    public UnityEvent onHit = new();
     private CueStick _cueStick;
     private Slider _slider;
 

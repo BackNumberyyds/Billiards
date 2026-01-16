@@ -147,7 +147,7 @@ public class GameSetup : MonoBehaviour
     private void ResetCueStickPos()
     {
         // _cueStick.transform.position = _cueBall.transform.position;
-        _cueStick.Transform(_cueBall.transform.position);
+        _cueStick.Move(_cueBall.transform.position);
     }
 
     private void MoveCueBall()

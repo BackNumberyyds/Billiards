@@ -77,7 +77,7 @@ public class CueStick : MonoBehaviour
             _aimLine.enabled = true;
     }
 
-    public void Transform(Vector3 pos)
+    public void Move(Vector3 pos)
     {
         transform.position = pos;
         UpdateAimLine();
