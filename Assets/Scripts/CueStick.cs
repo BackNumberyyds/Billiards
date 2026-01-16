@@ -66,10 +66,20 @@ public class CueStick : MonoBehaviour
     public void Hide()
     {
         _modelRenderer.enabled = false;
+        if (_aimLine != null)
+            _aimLine.enabled = false;
     }
 
     public void Show()
     {
         _modelRenderer.enabled = true;
+        if (_aimLine != null)
+            _aimLine.enabled = true;
+    }
+
+    public void Transform(Vector3 pos)
+    {
+        transform.position = pos;
+        UpdateAimLine();
     }
 }

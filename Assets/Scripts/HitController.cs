@@ -1,12 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
 {
+    public UnityEvent onHit;
     private CueStick _cueStick;
     private Slider _slider;
 
@@ -15,9 +14,9 @@ public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
         _slider = GetComponent<Slider>();
     }
 
-    public void SetCueStick(CueStick cueStick)
+    public void OnDrag(PointerEventData eventData)
     {
-        _cueStick = cueStick;
+        _cueStick.Pull(_slider.value);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -26,10 +25,11 @@ public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
         _slider.value = 0;
         _cueStick.Pull(0);
         _cueStick.Hit(hitPower);
+        onHit.Invoke();
     }
 
-    public void OnDrag(PointerEventData eventData)
+    public void SetCueStick(CueStick cueStick)
     {
-        _cueStick.Pull(_slider.value);
+        _cueStick = cueStick;
     }
 }

@@ -47,8 +47,6 @@ public class GameSetup : MonoBehaviour
 
     // game logic
     private readonly bool[] _isBallMoving = new bool[16];
-    private int _movingCount;
-    private bool _shotInProgress;
 
     private float _ballRadius;
 
@@ -67,9 +65,11 @@ public class GameSetup : MonoBehaviour
     private HitController _hitController;
 
     private bool _isMovingCueBall;
+    private int _movingCount;
     private Plane _mPlane;
     private Vector3 _prevMPos;
     private bool _rotateCueStick;
+    private bool _shotInProgress;
 
     // private bool _hasMovingBall
     // {
@@ -99,6 +99,7 @@ public class GameSetup : MonoBehaviour
 
         CreateHitController();
         _hitController.SetCueStick(_cueStick);
+        _hitController.onHit.AddListener(HandleHit);
         // PlaceRandomBalls();
         // Debug.Break();
 
@@ -136,9 +137,17 @@ public class GameSetup : MonoBehaviour
         if (!_isMovingCueBall) RotateCueStick();
     }
 
+    private void OnDestroy()
+    {
+        Ball.OnBallMoving -= HandleBallMoving;
+        Ball.OnBallStopped -= HandleBallStopped;
+        _hitController.onHit.RemoveListener(HandleHit);
+    }
+
     private void ResetCueStickPos()
     {
-        _cueStick.transform.position = _cueBall.transform.position;
+        // _cueStick.transform.position = _cueBall.transform.position;
+        _cueStick.Transform(_cueBall.transform.position);
     }
 
     private void MoveCueBall()
@@ -169,6 +178,11 @@ public class GameSetup : MonoBehaviour
             }
     }
 
+    private void HandleHit()
+    {
+        _cueStick.Hide();
+    }
+
     private void HandleBallStopped(Ball ball)
     {
         var ballId = ball.BallId;
@@ -197,6 +211,8 @@ public class GameSetup : MonoBehaviour
     private void HandleAllBallsStopped()
     {
         Debug.Log("All balls stopped.");
+        ResetCueStickPos();
+        _cueStick.Show();
     }
 
     private void RotateCueStick()
@@ -306,11 +322,5 @@ public class GameSetup : MonoBehaviour
     {
         var canvasObj = GameObject.FindWithTag("Canvas");
         _hitController = Instantiate(hitControllerPrefab, canvasObj.transform);
-    }
-
-    private void OnDestroy()
-    {
-        Ball.OnBallMoving -= HandleBallMoving;
-        Ball.OnBallStopped -= HandleBallStopped;
     }
 }
