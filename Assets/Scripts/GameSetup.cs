@@ -47,6 +47,8 @@ public class GameSetup : MonoBehaviour
 
     // game logic
     private readonly bool[] _isBallMoving = new bool[16];
+    private int _movingCount;
+    private bool _shotInProgress;
 
     private float _ballRadius;
 
@@ -88,7 +90,8 @@ public class GameSetup : MonoBehaviour
         _camera = Camera.main;
         _ballRadius = ballPrefab.GetComponent<SphereCollider>().radius;
         PlaceAllBalls();
-        // attach callback function to OnBallStopped event
+        // attach callback function to OnBallMoving/OnBallStopped event
+        Ball.OnBallMoving += HandleBallMoving;
         Ball.OnBallStopped += HandleBallStopped;
 
         PlaceCueStick();
@@ -168,8 +171,32 @@ public class GameSetup : MonoBehaviour
 
     private void HandleBallStopped(Ball ball)
     {
-        _isBallMoving[ball.BallId] = true;
-        // if (_hasMovingBall == false) {}
+        var ballId = ball.BallId;
+        if (ballId < 0 || ballId >= _isBallMoving.Length) return;
+        if (!_isBallMoving[ballId]) return;
+        _isBallMoving[ballId] = false;
+        _movingCount--;
+        if (_movingCount <= 0 && _shotInProgress)
+        {
+            _movingCount = 0;
+            _shotInProgress = false;
+            HandleAllBallsStopped();
+        }
+    }
+
+    private void HandleBallMoving(Ball ball)
+    {
+        var ballId = ball.BallId;
+        if (ballId < 0 || ballId >= _isBallMoving.Length) return;
+        if (_isBallMoving[ballId]) return;
+        _isBallMoving[ballId] = true;
+        _movingCount++;
+        _shotInProgress = true;
+    }
+
+    private void HandleAllBallsStopped()
+    {
+        Debug.Log("All balls stopped.");
     }
 
     private void RotateCueStick()
@@ -279,5 +306,11 @@ public class GameSetup : MonoBehaviour
     {
         var canvasObj = GameObject.FindWithTag("Canvas");
         _hitController = Instantiate(hitControllerPrefab, canvasObj.transform);
+    }
+
+    private void OnDestroy()
+    {
+        Ball.OnBallMoving -= HandleBallMoving;
+        Ball.OnBallStopped -= HandleBallStopped;
     }
 }

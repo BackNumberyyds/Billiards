@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,6 +16,11 @@ public class Ball : MonoBehaviour
     private int _ballId;
     private BallType _ballType;
     private Rigidbody _rb;
+    [SerializeField] private float stopSpeed = 0.02f;
+    [SerializeField] private float stopAngularSpeed = 0.2f;
+    [SerializeField] private float settleTime = 0.2f;
+    private bool _isMoving;
+    private float _stillTime;
 
     public int BallId
     {
@@ -31,6 +35,7 @@ public class Ball : MonoBehaviour
     }
     
     public static UnityEngine.Events.UnityAction<Ball> OnBallStopped;
+    public static UnityEngine.Events.UnityAction<Ball> OnBallMoving;
     
     // Start is called before the first frame update
     private void Start()
@@ -41,13 +46,25 @@ public class Ball : MonoBehaviour
         // Debug.Log(GetComponent<Rigidbody>().velocity);
     }
 
-    // Update is called once per frame
-    private void Update()
+    private void FixedUpdate()
     {
-        if (_rb.velocity.magnitude < 0.01f)
+        var moving = _rb.velocity.sqrMagnitude > stopSpeed * stopSpeed ||
+                     _rb.angularVelocity.sqrMagnitude >
+                     stopAngularSpeed * stopAngularSpeed;
+
+        if (moving)
         {
-            OnBallStopped?.Invoke(this);
+            _stillTime = 0f;
+            if (_isMoving) return;
+            _isMoving = true;
+            OnBallMoving?.Invoke(this);
+            return;
         }
+
+        _stillTime += Time.fixedDeltaTime;
+        if (!_isMoving || _stillTime < settleTime) return;
+        _isMoving = false;
+        OnBallStopped?.Invoke(this);
     }
 
     public void MakeCueBall(Mesh mesh)
