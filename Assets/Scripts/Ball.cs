@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Ball : MonoBehaviour
@@ -12,14 +11,17 @@ public class Ball : MonoBehaviour
         CueBall,
         BlackBall
     }
-    
-    private int _ballId;
-    private BallType _ballType;
-    private Rigidbody _rb;
+
+    public static UnityAction<Ball> OnBallStopped;
+    public static UnityAction<Ball> OnBallMoving;
     [SerializeField] private float stopSpeed = 0.02f;
     [SerializeField] private float stopAngularSpeed = 0.2f;
     [SerializeField] private float settleTime = 0.2f;
+
+    private int _ballId;
+    private BallType _ballType;
     private bool _isMoving;
+    private Rigidbody _rb;
     private float _stillTime;
 
     public int BallId
@@ -27,16 +29,10 @@ public class Ball : MonoBehaviour
         get => _ballId;
         set
         {
-            if (value is >= 0 and <= 15)
-            {
-                _ballId = value;
-            }
+            if (value is >= 0 and <= 15) _ballId = value;
         }
     }
-    
-    public static UnityEngine.Events.UnityAction<Ball> OnBallStopped;
-    public static UnityEngine.Events.UnityAction<Ball> OnBallMoving;
-    
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -63,6 +59,9 @@ public class Ball : MonoBehaviour
 
         _stillTime += Time.fixedDeltaTime;
         if (!_isMoving || _stillTime < settleTime) return;
+
+        _rb.velocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
         _isMoving = false;
         OnBallStopped?.Invoke(this);
     }

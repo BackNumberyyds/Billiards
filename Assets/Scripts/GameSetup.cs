@@ -4,6 +4,13 @@ using UnityEngine.EventSystems;
 
 public class GameSetup : MonoBehaviour
 {
+    private enum InputState
+    {
+        Idle,
+        DraggingSlider,
+        MovingCueBall,
+        ShotInProgress
+    }
     private static readonly Ball.BallType[] BallSpawningOrder =
     {
         Ball.BallType.SolidBall,
@@ -64,12 +71,12 @@ public class GameSetup : MonoBehaviour
     // UI props
     private HitController _hitController;
 
-    private bool _isMovingCueBall;
     private int _movingCount;
     private Plane _mPlane;
     private Vector3 _prevMPos;
     private bool _rotatingCueStick;
     private bool _shotInProgress;
+    private InputState _inputState = InputState.Idle;
 
     // private bool _hasMovingBall
     // {
@@ -100,6 +107,8 @@ public class GameSetup : MonoBehaviour
         CreateHitController();
         _hitController.SetCueStick(_cueStick);
         _hitController.onHit.AddListener(HandleHit);
+        _hitController.onDragStart.AddListener(HandleSliderDragStart);
+        _hitController.onDragEnd.AddListener(HandleSliderDragEnd);
         // PlaceRandomBalls();
         // Debug.Break();
 
@@ -113,7 +122,8 @@ public class GameSetup : MonoBehaviour
     private void Update()
     {
         MoveCueBall();
-        if (!_isMovingCueBall) RotateCueStick();
+        if (_inputState == InputState.Idle)
+            RotateCueStick();
     }
 
     private void FixedUpdate()
@@ -125,6 +135,8 @@ public class GameSetup : MonoBehaviour
         Ball.OnBallMoving -= HandleBallMoving;
         Ball.OnBallStopped -= HandleBallStopped;
         _hitController.onHit.RemoveListener(HandleHit);
+        _hitController.onDragStart.RemoveListener(HandleSliderDragStart);
+        _hitController.onDragEnd.RemoveListener(HandleSliderDragEnd);
     }
 
     private void ResetCueStickPos()
@@ -135,23 +147,29 @@ public class GameSetup : MonoBehaviour
 
     private void MoveCueBall()
     {
+        if (_inputState == InputState.DraggingSlider ||
+            _inputState == InputState.ShotInProgress)
+            return;
+
         var ray = _camera.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetMouseButtonDown(0) &&
+        if (_inputState == InputState.Idle &&
+            Input.GetMouseButtonDown(0) &&
             Physics.Raycast(ray, out var hitInfo) &&
             hitInfo.collider.TryGetComponent<Ball>(out var ball))
         {
-            _isMovingCueBall = true;
+            SetInputState(InputState.MovingCueBall);
             _cueStick.Hide();
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (_inputState == InputState.MovingCueBall &&
+            Input.GetMouseButtonUp(0))
         {
-            _isMovingCueBall = false;
+            SetInputState(InputState.Idle);
             ResetCueStickPos();
             _cueStick.Show();
         }
 
-        if (!_isMovingCueBall) return;
+        if (_inputState != InputState.MovingCueBall) return;
 
         if (Input.GetMouseButton(0))
             if (_mPlane.Raycast(ray, out var distance))
@@ -163,6 +181,7 @@ public class GameSetup : MonoBehaviour
 
     private void HandleHit()
     {
+        SetInputState(InputState.ShotInProgress);
         _cueStick.Hide();
     }
 
@@ -194,8 +213,21 @@ public class GameSetup : MonoBehaviour
     private void HandleAllBallsStopped()
     {
         Debug.Log("All balls stopped.");
+        SetInputState(InputState.Idle);
         ResetCueStickPos();
         _cueStick.Show();
+    }
+
+    private void HandleSliderDragStart()
+    {
+        if (_inputState == InputState.ShotInProgress) return;
+        SetInputState(InputState.DraggingSlider);
+    }
+
+    private void HandleSliderDragEnd()
+    {
+        if (_inputState != InputState.DraggingSlider) return;
+        SetInputState(InputState.Idle);
     }
 
     private void RotateCueStick()
@@ -230,6 +262,14 @@ public class GameSetup : MonoBehaviour
         }
 
         if (Input.GetMouseButtonUp(0))
+            _rotatingCueStick = false;
+    }
+
+    private void SetInputState(InputState state)
+    {
+        if (_inputState == state) return;
+        _inputState = state;
+        if (_inputState != InputState.Idle)
             _rotatingCueStick = false;
     }
 
