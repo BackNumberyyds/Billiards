@@ -68,7 +68,7 @@ public class GameSetup : MonoBehaviour
     private int _movingCount;
     private Plane _mPlane;
     private Vector3 _prevMPos;
-    private bool _rotateCueStick;
+    private bool _rotatingCueStick;
     private bool _shotInProgress;
 
     // private bool _hasMovingBall
@@ -112,29 +112,12 @@ public class GameSetup : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        // //Detect when there is a mouse click
-        // if (Input.GetMouseButtonDown(0))
-        // {
-        //     //Create a ray from the Mouse click position
-        //     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        //
-        //     //Initialise the enter variable
-        //     float enter = 0.0f;
-        //
-        //     if (_mPlane.Raycast(ray, out enter))
-        //     {
-        //         //Get the point that is clicked
-        //         Vector3 hitPoint = ray.GetPoint(enter);
-        //
-        //         cueBallObj.GetComponent<Rigidbody>().AddForce(300f *  Vector3.Scale(new Vector3(1,0,1),(hitPoint - cueBallObj.transform.position)));
-        //     }
-        // }
+        MoveCueBall();
+        if (!_isMovingCueBall) RotateCueStick();
     }
 
     private void FixedUpdate()
     {
-        MoveCueBall();
-        if (!_isMovingCueBall) RotateCueStick();
     }
 
     private void OnDestroy()
@@ -222,24 +205,32 @@ public class GameSetup : MonoBehaviour
                 _camera.WorldToScreenPoint(_cueBall.transform.position);
         if (Input.GetMouseButtonDown(0))
         {
-            if (_eventSystem.IsPointerOverGameObject()) return;
+            if (_eventSystem.IsPointerOverGameObject())
+            {
+                Debug.Log("On canvas");
+                return;
+            }
 
-            _rotateCueStick = true;
+            _rotatingCueStick = true;
             _prevMPos = Input.mousePosition - _cueBallPos;
+
+            return;
         }
 
-        if (!_rotateCueStick) return;
+        if (!_rotatingCueStick) return;
 
-        if (Input.GetMouseButtonUp(0)) _rotateCueStick = false;
+        if (Input.GetMouseButtonUp(0) || Input.GetMouseButton(0))
+        {
+            var curr = Input.mousePosition - _cueBallPos;
+            var angle = -Vector2.SignedAngle(_prevMPos, curr);
 
-        if (!Input.GetMouseButton(0)) return;
+            _prevMPos = curr;
 
-        var curr = Input.mousePosition - _cueBallPos;
-        var angle = -Vector2.SignedAngle(_prevMPos, curr);
+            _cueStick.Rotate(angle);
+        }
 
-        _prevMPos = curr;
-
-        _cueStick.Rotate(angle);
+        if (Input.GetMouseButtonUp(0))
+            _rotatingCueStick = false;
     }
 
     private void PlaceAllBalls()

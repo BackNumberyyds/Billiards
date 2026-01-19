@@ -24,6 +24,9 @@ public class HitController : MonoBehaviour, IPointerUpHandler, IDragHandler
         var hitPower = _slider.value;
         _slider.value = 0;
         _cueStick.Pull(0);
+        if (hitPower < 0.05)
+            return;
+
         _cueStick.Hit(hitPower);
         onHit.Invoke();
     }
