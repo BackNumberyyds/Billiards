@@ -4,13 +4,6 @@ using UnityEngine.EventSystems;
 
 public class GameSetup : MonoBehaviour
 {
-    private enum InputState
-    {
-        Idle,
-        DraggingSlider,
-        MovingCueBall,
-        ShotInProgress
-    }
     private static readonly Ball.BallType[] BallSpawningOrder =
     {
         Ball.BallType.SolidBall,
@@ -38,7 +31,7 @@ public class GameSetup : MonoBehaviour
 
     // UI prefabs
     [Header("UI Prefabs")] [SerializeField]
-    private HitController hitControllerPrefab;
+    private GameObject cuestickControlsPrefab;
 
     // spawning position
     [Header("Spawning Position")] [SerializeField]
@@ -70,13 +63,14 @@ public class GameSetup : MonoBehaviour
 
     // UI props
     private HitController _hitController;
+    private InputState _inputState = InputState.Idle;
 
     private int _movingCount;
     private Plane _mPlane;
     private Vector3 _prevMPos;
     private bool _rotatingCueStick;
     private bool _shotInProgress;
-    private InputState _inputState = InputState.Idle;
+    private HitController hitControllerPrefab;
 
     // private bool _hasMovingBall
     // {
@@ -352,6 +346,17 @@ public class GameSetup : MonoBehaviour
     private void CreateHitController()
     {
         var canvasObj = GameObject.FindWithTag("Canvas");
-        _hitController = Instantiate(hitControllerPrefab, canvasObj.transform);
+        var cuestickControlsObj =
+            Instantiate(cuestickControlsPrefab, canvasObj.transform);
+        _hitController =
+            cuestickControlsObj.GetComponentInChildren<HitController>();
+    }
+
+    private enum InputState
+    {
+        Idle,
+        DraggingSlider,
+        MovingCueBall,
+        ShotInProgress
     }
 }
